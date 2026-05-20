@@ -57,6 +57,18 @@ Features included in the dashboard:
 
 ---
 
+## Dashboard Screenshots
+
+### Main Dashboard Overview
+
+![Dashboard Overview](Loan%20Risk%20Project/visuals/dashboard-visualizations.png)
+
+### Additional Dashboard Visualizations
+
+![Dashboard Visualizations](Loan%20Risk%20Project/visuals/dashboard-visualizations_2.png)
+
+---
+
 # Technologies Used
 
 - Python
@@ -69,6 +81,88 @@ Features included in the dashboard:
 - Scikit-learn
 - Jupyter Notebook
 - Visual Studio Code
+
+---
+
+# Dashboard Screenshots
+
+## Main Dashboard Overview
+
+![Dashboard Overview](Loan%20Risk%20Project/visuals/dashboard-visualizations.png)
+
+## Additional Dashboard Visualizations
+
+![Dashboard Visualizations](Loan%20Risk%20Project/visuals/dashboard-visualizations_2.png)
+
+---
+
+---
+
+# Dashboard Screenshots
+
+## Main Dashboard Overview
+
+![Dashboard Overview](Loan%20Risk%20Project/visuals/dashboard-visualizations.png)
+
+## Additional Dashboard Visualizations
+
+![Dashboard Visualizations](Loan%20Risk%20Project/visuals/dashboard-visualizations_2.png)
+
+---
+
+# Key Visualizations
+
+## Monthly Loan Volume Trend
+
+![Monthly Loan Volume](Loan%20Risk%20Project/visuals/monthly-loan-volume-2019.png)
+
+## Default Rate by Loan Purpose
+
+![Default Rate by Loan Purpose](Loan%20Risk%20Project/visuals/Default%20Rate%20by%20Loan%20Purpose.png)
+
+## Detected Outliers by Financial Feature
+
+![Detected Outliers](Loan%20Risk%20Project/visuals/Detected%20Outliers%20by%20Financial%20Feature.png)
+
+## Distribution of Loan Types
+
+![Distribution of Loan Types](Loan%20Risk%20Project/visuals/Distribution%20of%20Loan%20Types.png)
+
+## Credit Score and Default Risk
+
+![Credit Score and Default Risk](Loan%20Risk%20Project/visuals/Impact%20of%20Credit%20Score%20on%20Loan%20Amount%20and%20Default%20Risk.png)
+
+## Loan Defaults by Loan Purpose
+
+![Loan Defaults by Loan Purpose](Loan%20Risk%20Project/visuals/Loan%20Defaults%20by%20Loan%20Purpose.png)
+
+## Loan Purpose to Debt to Income Ratio
+
+![Loan Purpose to Debt to Income Ratio](Loan%20Risk%20Project/visuals/Loan%20Purpose%20to%20Debt%20to%20Income%20Ratio.png)
+
+## Loan Status Proportion by Type
+
+![Loan Status Proportion](Loan%20Risk%20Project/visuals/Loan%20Status%20Proportion%20by%20Type.png)
+
+## Pre-Approval Distribution by Loan Type
+
+![Pre Approval Distribution](Loan%20Risk%20Project/visuals/Pre-Approval%20Distribution%20by%20Loan%20Type.png)
+
+## Property Value vs Loan Amount
+
+![Property Value vs Loan Amount](Loan%20Risk%20Project/visuals/Property%20Value%20vs%20Loan%20Amount.png)
+
+## Relationship Between Borrower Income and Loan Amount
+
+![Borrower Income and Loan Amount](Loan%20Risk%20Project/visuals/Relationship%20Between%20Borrower%20Income%20and%20Loan%20Amount.png)
+
+## Relationship Between Loan Amount and Interest Rate Spread
+
+![Loan Amount and Interest Rate Spread](Loan%20Risk%20Project/visuals/Relationship%20Between%20Loan%20Amount%20and%20Interest%20Rate%20Spread.png)
+
+## Relationship Between Property Value and Interest Rate Spread
+
+![Property Value and Interest Rate Spread](Loan%20Risk%20Project/visuals/Relationship%20Between%20Property%20Value%20and%20Interest%20Rate%20Spread.png)
 
 ---
 
@@ -94,3 +188,5 @@ loan-default-risk-analysis-dashboard/
 │
 └── presentation/
     └── Loan_Default_Risk_Analysis_Presentation.pdf
+
+
