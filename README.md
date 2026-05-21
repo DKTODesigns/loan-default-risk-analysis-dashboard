@@ -1,5 +1,26 @@
 # Loan Default Risk Analysis Dashboard
 
+## Team Collaboration
+
+This project was completed as part of a group assignment through the NPower Canada Data Analytics program.
+
+### Team Contributions
+- Dataset selection and initial project direction: Medhanit and Edwin
+- Exploratory analysis and insight discovery in Google Colab: Nuha and Divya
+- Initial Dash dashboard implementation in Visual Studio Code: Froila
+
+### My Contributions
+I helped guide the overall project direction and supported the team in defining meaningful business questions and identifying financial insights to explore within the dataset.
+
+My direct contributions included:
+- Oversaw project coordination and alignment across deliverables
+- Helped shape the analytical approach and identify target insights during early exploration
+- Refined and enhanced the Dash dashboard in Visual Studio Code
+- Improved dashboard usability by adding additional filters and replacing the year selector with monthly analysis
+- Created the final PowerPoint presentation and presentation narrative
+- Added markdown structure and documentation in the Colab notebook to improve readability and storytelling
+- Supported GitHub documentation and final project packaging
+
 ## Project Overview
 
 This project analyzes loan default data to identify borrower risk patterns, financial trends, and lending insights using Python, data visualization, and interactive dashboard development.
