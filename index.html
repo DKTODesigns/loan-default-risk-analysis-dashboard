@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Loan Default Risk Analysis Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@300;400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --navy:       #050d1a;
+    --navy-2:     #0a1628;
+    --navy-3:     #0f1f38;
+    --navy-4:     #162847;
+    --teal:       #00e5c8;
+    --teal-2:     #00bfa5;
+    --blue:       #3b8bff;
+    --blue-2:     #1a5fff;
+    --purple:     #a855f7;
+    --green:      #22d35e;
+    --amber:      #fbbf24;
+    --red:        #f43f5e;
+    --text-1:     #f0f4ff;
+    --text-2:     #94a3b8;
+    --text-3:     #4e6280;
+    --border:     rgba(59,139,255,.15);
+    --glow-t:     rgba(0,229,200,.18);
+    --glow-b:     rgba(59,139,255,.18);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--navy);
+    color: var(--text-1);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 0;
+    opacity: .5;
+  }
+
+  /* ── GRID LINES ── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(59,139,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(59,139,255,.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none; z-index: 0;
+  }
+
+  section, nav, footer { position: relative; z-index: 1; }
+
+  /* ── NAV ── */
+  nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.2rem 4rem;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    background: rgba(5,13,26,.85);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 1rem; font-weight: 700; letter-spacing: .08em;
+    color: var(--teal);
+    text-transform: uppercase;
+  }
+
+  .nav-links { display: flex; gap: 2rem; list-style: none; }
+  .nav-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: .78rem; letter-spacing: .06em;
+    color: var(--text-2); text-decoration: none;
+    transition: color .2s;
+  }
+  .nav-links a:hover { color: var(--teal); }
+
+  .nav-cta {
+    font-family: 'DM Mono', monospace; font-size: .78rem;
+    padding: .45rem 1.1rem;
+    border: 1px solid var(--teal);
+    border-radius: 4px;
+    color: var(--teal); text-decoration: none;
+    transition: background .2s, color .2s;
+  }
+  .nav-cta:hover { background: var(--teal); color: var(--navy); }
+
+  /* ── HERO ── */
+  .hero {
+    min-height: 92vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 6rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* radial glows */
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 700px; height: 700px;
+    background: radial-gradient(circle, rgba(0,229,200,.12) 0%, transparent 70%);
+    top: -100px; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    width: 500px; height: 500px;
+    background: radial-gradient(circle, rgba(168,85,247,.1) 0%, transparent 70%);
+    bottom: 0; right: -100px;
+    pointer-events: none;
+  }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: .5rem;
+    font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .1em;
+    text-transform: uppercase;
+    border: 1px solid rgba(0,229,200,.35);
+    background: rgba(0,229,200,.07);
+    color: var(--teal);
+    padding: .35rem 1rem; border-radius: 999px;
+    margin-bottom: 2rem;
+    animation: fadeUp .7s ease both;
+  }
+
+  .hero-badge::before {
+    content: ''; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--teal);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; transform: scale(1); }
+    50%      { opacity: .4; transform: scale(1.4); }
+  }
+
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(2.8rem, 6vw, 5.5rem);
+    font-weight: 800; line-height: 1.05;
+    letter-spacing: -.03em;
+    background: linear-gradient(135deg, #f0f4ff 0%, var(--teal) 55%, var(--blue) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    max-width: 900px;
+    animation: fadeUp .7s .15s ease both;
+  }
+
+  .hero-sub {
+    font-size: 1.15rem; color: var(--text-2); font-weight: 300;
+    max-width: 620px; margin: 1.5rem auto 2.5rem;
+    animation: fadeUp .7s .3s ease both;
+  }
+
+  .hero-tags {
+    display: flex; flex-wrap: wrap; justify-content: center; gap: .6rem;
+    margin-bottom: 3rem;
+    animation: fadeUp .7s .45s ease both;
+  }
+
+  .tag {
+    font-family: 'DM Mono', monospace; font-size: .72rem; letter-spacing: .05em;
+    padding: .3rem .85rem; border-radius: 4px;
+    border: 1px solid;
+  }
+  .tag-teal  { border-color: rgba(0,229,200,.4);  color: var(--teal);   background: rgba(0,229,200,.06);  }
+  .tag-blue  { border-color: rgba(59,139,255,.4);  color: var(--blue);   background: rgba(59,139,255,.06);  }
+  .tag-purple{ border-color: rgba(168,85,247,.4);  color: var(--purple); background: rgba(168,85,247,.06); }
+  .tag-green { border-color: rgba(34,211,94,.4);   color: var(--green);  background: rgba(34,211,94,.06);  }
+  .tag-amber { border-color: rgba(251,191,36,.4);  color: var(--amber);  background: rgba(251,191,36,.06); }
+
+  .hero-ctas {
+    display: flex; gap: 1rem;
+    animation: fadeUp .7s .6s ease both;
+  }
+
+  .btn-primary {
+    font-family: 'DM Mono', monospace; font-size: .82rem; letter-spacing: .06em;
+    padding: .8rem 2rem; border-radius: 6px;
+    background: var(--teal); color: var(--navy); font-weight: 500;
+    text-decoration: none; border: none; cursor: pointer;
+    transition: transform .2s, box-shadow .2s;
+    box-shadow: 0 0 28px rgba(0,229,200,.35);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,229,200,.5); }
+
+  .btn-secondary {
+    font-family: 'DM Mono', monospace; font-size: .82rem; letter-spacing: .06em;
+    padding: .8rem 2rem; border-radius: 6px;
+    border: 1px solid var(--border); color: var(--text-1);
+    text-decoration: none; background: transparent;
+    transition: border-color .2s, background .2s;
+  }
+  .btn-secondary:hover { border-color: var(--blue); background: rgba(59,139,255,.08); }
+
+  /* scroll indicator */
+  .scroll-hint {
+    position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: .4rem;
+    font-family: 'DM Mono', monospace; font-size: .68rem; letter-spacing: .08em;
+    color: var(--text-3);
+    animation: fadeIn 1s 1.2s ease both;
+  }
+  .scroll-line {
+    width: 1px; height: 40px;
+    background: linear-gradient(to bottom, var(--teal), transparent);
+    animation: scrollLine 1.8s infinite;
+  }
+  @keyframes scrollLine {
+    0%   { transform: scaleY(0); transform-origin: top; opacity: 0; }
+    50%  { transform: scaleY(1); opacity: 1; }
+    100% { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+
+  /* ── SECTIONS SHARED ── */
+  .section { padding: 6rem 4rem; }
+  .section-label {
+    font-family: 'DM Mono', monospace; font-size: .7rem; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--teal);
+    margin-bottom: .8rem;
+    display: flex; align-items: center; gap: .5rem;
+  }
+  .section-label::before {
+    content: ''; display: inline-block;
+    width: 20px; height: 1px; background: var(--teal);
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif; font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+    font-weight: 700; line-height: 1.1; letter-spacing: -.02em;
+    margin-bottom: 1rem;
+  }
+  .section-sub {
+    color: var(--text-2); font-size: 1rem; font-weight: 300; max-width: 560px;
+  }
+
+  /* ── OVERVIEW ── */
+  .overview-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+    margin-top: 3.5rem; align-items: center;
+  }
+
+  .overview-text p {
+    color: var(--text-2); line-height: 1.8; margin-bottom: 1.2rem;
+  }
+
+  .overview-list {
+    list-style: none; display: flex; flex-direction: column; gap: .7rem;
+    margin-top: 1.5rem;
+  }
+  .overview-list li {
+    display: flex; align-items: center; gap: .75rem;
+    font-size: .92rem; color: var(--text-2);
+  }
+  .overview-list li::before {
+    content: ''; width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    background: var(--teal);
+    box-shadow: 0 0 8px var(--teal);
+  }
+
+  .overview-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem;
+  }
+
+  .stat-card {
+    background: var(--navy-3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    position: relative; overflow: hidden;
+    transition: border-color .25s, transform .25s;
+  }
+  .stat-card:hover { border-color: rgba(0,229,200,.3); transform: translateY(-3px); }
+  .stat-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--teal), var(--blue));
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif; font-size: 2.2rem; font-weight: 800;
+    background: linear-gradient(135deg, var(--teal), var(--blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+  }
+  .stat-label { font-size: .8rem; color: var(--text-2); margin-top: .4rem; font-family: 'DM Mono', monospace; }
+
+  /* ── KPI METRICS ── */
+  .kpi-section {
+    background: var(--navy-2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .kpi-card {
+    background: var(--navy-3); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.8rem 1.5rem;
+    position: relative; overflow: hidden;
+    transition: border-color .25s, box-shadow .25s, transform .25s;
+  }
+  .kpi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 40px rgba(0,0,0,.3);
+  }
+
+  .kpi-card.teal  { --kc: var(--teal);   --kc2: var(--blue); }
+  .kpi-card.blue  { --kc: var(--blue);   --kc2: var(--purple); }
+  .kpi-card.purple{ --kc: var(--purple); --kc2: var(--blue); }
+  .kpi-card.green { --kc: var(--green);  --kc2: var(--teal); }
+
+  .kpi-card:hover { border-color: var(--kc); box-shadow: 0 0 30px rgba(from var(--kc) r g b / .15); }
+
+  .kpi-card::after {
+    content: '';
+    position: absolute; bottom: 0; left: 0; right: 0; height: 80px;
+    background: radial-gradient(ellipse at 50% 100%, var(--glow-t), transparent 70%);
+  }
+
+  .kpi-icon {
+    width: 40px; height: 40px; border-radius: 8px;
+    background: rgba(0,229,200,.1);
+    border: 1px solid rgba(0,229,200,.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; margin-bottom: 1.2rem;
+  }
+  .kpi-card.teal   .kpi-icon { background: rgba(0,229,200,.1);   border-color: rgba(0,229,200,.25); }
+  .kpi-card.blue   .kpi-icon { background: rgba(59,139,255,.1);  border-color: rgba(59,139,255,.25); }
+  .kpi-card.purple .kpi-icon { background: rgba(168,85,247,.1);  border-color: rgba(168,85,247,.25); }
+  .kpi-card.green  .kpi-icon { background: rgba(34,211,94,.1);   border-color: rgba(34,211,94,.25); }
+
+  .kpi-value {
+    font-family: 'Syne', sans-serif; font-size: 2.4rem; font-weight: 800;
+    color: var(--kc); line-height: 1;
+  }
+  .kpi-metric { font-size: .82rem; color: var(--text-2); margin-top: .5rem; font-family: 'DM Mono', monospace; }
+  .kpi-change {
+    margin-top: .8rem; font-size: .75rem; font-family: 'DM Mono', monospace;
+    color: var(--green);
+    display: flex; align-items: center; gap: .3rem;
+  }
+
+  /* ── DASHBOARD PREVIEW ── */
+  .preview-section { background: var(--navy); }
+
+  .preview-frame {
+    margin-top: 3rem;
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 0 60px rgba(0,229,200,.08), 0 40px 80px rgba(0,0,0,.5);
+    position: relative;
+  }
+
+  .preview-bar {
+    background: var(--navy-3);
+    padding: .7rem 1rem;
+    display: flex; align-items: center; gap: .5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .dot { width: 11px; height: 11px; border-radius: 50%; }
+  .dot-r { background: #f43f5e; }
+  .dot-y { background: #fbbf24; }
+  .dot-g { background: #22d35e; }
+
+  .preview-url {
+    flex: 1; text-align: center;
+    font-family: 'DM Mono', monospace; font-size: .72rem; color: var(--text-3);
+  }
+
+  .preview-img { width: 100%; display: block; }
+
+  .preview-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;
+  }
+
+  .preview-small {
+    border-radius: 10px; overflow: hidden;
+    border: 1px solid var(--border);
+    box-shadow: 0 8px 24px rgba(0,0,0,.3);
+    transition: transform .25s, box-shadow .25s;
+  }
+  .preview-small:hover { transform: translateY(-4px); box-shadow: 0 16px 40px rgba(0,229,200,.1); }
+  .preview-small img { width: 100%; display: block; }
+
+  /* ── INSIGHTS ── */
+  .insights-section { background: var(--navy-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+  .insights-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .insight-card {
+    background: var(--navy-3);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.8rem;
+    position: relative; overflow: hidden;
+    transition: transform .25s, border-color .25s;
+  }
+  .insight-card:hover { transform: translateY(-4px); border-color: var(--ins-color, var(--teal)); }
+
+  .insight-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--ins-color, var(--teal));
+  }
+
+  .insight-num {
+    font-family: 'Syne', sans-serif; font-size: 2.5rem; font-weight: 800;
+    color: var(--ins-color, var(--teal)); opacity: .2;
+    position: absolute; top: 1rem; right: 1.2rem; line-height: 1;
+  }
+
+  .insight-icon { font-size: 1.4rem; margin-bottom: 1rem; }
+
+  .insight-title {
+    font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 700;
+    margin-bottom: .7rem;
+  }
+
+  .insight-body { font-size: .88rem; color: var(--text-2); line-height: 1.7; }
+
+  /* ── VISUALIZATIONS ── */
+  .viz-section { background: var(--navy); }
+
+  .viz-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .viz-card {
+    background: var(--navy-3); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    transition: transform .25s, border-color .25s, box-shadow .25s;
+  }
+  .viz-card:hover {
+    transform: translateY(-5px);
+    border-color: rgba(59,139,255,.3);
+    box-shadow: 0 20px 50px rgba(0,0,0,.4);
+  }
+
+  .viz-card img { width: 100%; display: block; aspect-ratio: 4/3; object-fit: cover; }
+  .viz-card-footer {
+    padding: 1rem 1.2rem;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .viz-name { font-size: .82rem; font-weight: 500; color: var(--text-1); }
+  .viz-type {
+    font-family: 'DM Mono', monospace; font-size: .65rem;
+    color: var(--text-3); letter-spacing: .06em;
+  }
+
+  .viz-wide { grid-column: span 2; }
+  .viz-wide img { aspect-ratio: 16/7; }
+
+  /* ── RECOMMENDATIONS ── */
+  .recs-section { background: var(--navy-2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+
+  .recs-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+    margin-top: 3rem;
+  }
+
+  .rec-card {
+    background: var(--navy-3); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.8rem;
+    display: flex; gap: 1.2rem; align-items: flex-start;
+    transition: border-color .25s, transform .25s;
+  }
+  .rec-card:hover { transform: translateY(-3px); border-color: rgba(0,229,200,.25); }
+
+  .rec-num {
+    font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800;
+    color: var(--teal); opacity: .3; line-height: 1; flex-shrink: 0;
+    width: 2.5rem; text-align: right;
+  }
+
+  .rec-content {}
+  .rec-title {
+    font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700;
+    margin-bottom: .5rem;
+  }
+  .rec-body { font-size: .87rem; color: var(--text-2); line-height: 1.7; }
+
+  /* ── TOOLS ── */
+  .tools-section { background: var(--navy); }
+
+  .tools-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem;
+    margin-top: 3rem;
+  }
+
+  .tool-pill {
+    background: var(--navy-3); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1.2rem 1rem;
+    text-align: center;
+    transition: border-color .25s, transform .25s;
+  }
+  .tool-pill:hover { border-color: var(--pill-color, var(--teal)); transform: translateY(-3px); }
+
+  .tool-icon { font-size: 1.6rem; margin-bottom: .6rem; }
+  .tool-name { font-family: 'DM Mono', monospace; font-size: .78rem; color: var(--text-2); }
+
+  /* ── LINKS ── */
+  .links-section {
+    background: var(--navy-3);
+    border-top: 1px solid var(--border);
+    text-align: center;
+  }
+
+  .links-row {
+    display: flex; justify-content: center; gap: 1.5rem;
+    margin-top: 2.5rem; flex-wrap: wrap;
+  }
+
+  .link-card {
+    background: var(--navy-2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem 2rem;
+    display: flex; align-items: center; gap: 1rem;
+    text-decoration: none; min-width: 220px;
+    transition: border-color .25s, transform .25s, box-shadow .25s;
+  }
+  .link-card:hover {
+    border-color: var(--teal); transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,229,200,.12);
+  }
+  .link-icon { font-size: 1.5rem; }
+  .link-text {}
+  .link-text strong { display: block; font-family: 'Syne', sans-serif; font-size: .95rem; color: var(--text-1); }
+  .link-text span   { font-size: .78rem; color: var(--text-3); font-family: 'DM Mono', monospace; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--navy); border-top: 1px solid var(--border);
+    text-align: center; padding: 2.5rem;
+  }
+  footer p { font-size: .8rem; color: var(--text-3); font-family: 'DM Mono', monospace; }
+  footer span { color: var(--teal); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 0;
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 900px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .section { padding: 4rem 1.5rem; }
+    .overview-grid { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .insights-grid { grid-template-columns: 1fr; }
+    .viz-grid { grid-template-columns: 1fr; }
+    .viz-wide { grid-column: span 1; }
+    .recs-grid { grid-template-columns: 1fr; }
+    .tools-grid { grid-template-columns: repeat(3, 1fr); }
+    .preview-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">LoanRisk·AI</div>
+  <ul class="nav-links">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#dashboard">Dashboard</a></li>
+    <li><a href="#insights">Insights</a></li>
+    <li><a href="#visuals">Visuals</a></li>
+    <li><a href="#tools">Tools</a></li>
+  </ul>
+  <a href="https://github.com/DKTODesigns/loan-default-risk-analysis-dashboard" target="_blank" class="nav-cta">View on GitHub →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-badge">Data Analytics &amp; FinTech Project</div>
+  <h1>Loan Default Risk<br/>Analysis Dashboard</h1>
+  <p class="hero-sub">Business insights &amp; predictive modeling for lending portfolios — transforming raw borrower data into actionable risk intelligence through EDA, regression modeling, and an interactive Dash dashboard.</p>
+
+  <div class="hero-tags">
+    <span class="tag tag-teal">Python</span>
+    <span class="tag tag-blue">Pandas</span>
+    <span class="tag tag-teal">Plotly</span>
+    <span class="tag tag-purple">Dash</span>
+    <span class="tag tag-green">scikit-learn</span>
+    <span class="tag tag-amber">Seaborn</span>
+    <span class="tag tag-blue">Matplotlib</span>
+    <span class="tag tag-teal">NumPy</span>
+    <span class="tag tag-purple">Jupyter</span>
+  </div>
+
+  <div class="hero-ctas">
+    <a href="#dashboard" class="btn-primary">Explore Dashboard</a>
+    <a href="https://github.com/DKTODesigns/loan-default-risk-analysis-dashboard" target="_blank" class="btn-secondary">GitHub →</a>
+  </div>
+
+  <div class="scroll-hint">
+    <span>scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section class="section" id="overview">
+  <div class="section-label">Project Overview</div>
+  <h2 class="section-title">Understanding<br/>Lending Risk at Scale</h2>
+
+  <div class="overview-grid">
+    <div class="overview-text">
+      <p>This project examines a large-scale loan portfolio to uncover the behavioral, geographic, and financial patterns that drive default risk. Starting from raw data, the analysis follows a complete analytics pipeline — from cleaning and exploration to modeling and interactive visualization.</p>
+      <p>Using a dataset of over 112,000 loan applications across four regions, the project identifies which borrower segments, loan types, and economic conditions correlate most strongly with default outcomes.</p>
+
+      <ul class="overview-list">
+        <li>Data cleaning, transformation, and feature engineering</li>
+        <li>Exploratory Data Analysis with outlier detection</li>
+        <li>Multivariate statistical analysis and correlation mapping</li>
+        <li>Predictive risk modeling with scikit-learn</li>
+        <li>Interactive filtering dashboard with Dash &amp; Plotly</li>
+        <li>Business intelligence recommendations for lending strategy</li>
+      </ul>
+    </div>
+
+    <div class="overview-stats">
+      <div class="stat-card">
+        <div class="stat-num">112K+</div>
+        <div class="stat-label">Loan Applications Analyzed</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">4</div>
+        <div class="stat-label">Geographic Regions</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">18</div>
+        <div class="stat-label">Presentation Slides</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">4</div>
+        <div class="stat-label">Regression Models Built</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- KPI METRICS -->
+<section class="section kpi-section" id="metrics">
+  <div class="section-label">Key Metrics</div>
+  <h2 class="section-title">Portfolio Snapshot</h2>
+  <p class="section-sub">High-level indicators from the full dataset, replicating the live dashboard KPI cards.</p>
+
+  <div class="kpi-grid">
+    <div class="kpi-card teal">
+      <div class="kpi-icon">📋</div>
+      <div class="kpi-value">112,231</div>
+      <div class="kpi-metric">Total Applications</div>
+      <div class="kpi-change">↑ Full 2019 dataset</div>
+    </div>
+    <div class="kpi-card blue">
+      <div class="kpi-icon">⭐</div>
+      <div class="kpi-value">699.5</div>
+      <div class="kpi-metric">Average Credit Score</div>
+      <div class="kpi-change">↑ Near-prime threshold</div>
+    </div>
+    <div class="kpi-card purple">
+      <div class="kpi-icon">📈</div>
+      <div class="kpi-value">4.05%</div>
+      <div class="kpi-metric">Average Interest Rate</div>
+      <div class="kpi-change">↑ Weighted portfolio avg.</div>
+    </div>
+    <div class="kpi-card green">
+      <div class="kpi-icon">⚠️</div>
+      <div class="kpi-value">0.18%</div>
+      <div class="kpi-metric">Dashboard Default Rate</div>
+      <div class="kpi-change">↑ After filter normalization</div>
+    </div>
+  </div>
+</section>
+
+<!-- DASHBOARD PREVIEW -->
+<section class="section preview-section" id="dashboard">
+  <div class="section-label">Dashboard Preview</div>
+  <h2 class="section-title">Interactive Risk Explorer</h2>
+  <p class="section-sub">Built with Dash and Plotly — filter by region, month, loan type, and status in real time.</p>
+
+  <div class="preview-frame">
+    <div class="preview-bar">
+      <div class="dot dot-r"></div>
+      <div class="dot dot-y"></div>
+      <div class="dot dot-g"></div>
+      <div class="preview-url">localhost:8050 — Loan Default Risk Analysis Dashboard</div>
+    </div>
+    <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/dashboard-visualizations.png" alt="Dashboard Overview" class="preview-img" onerror="this.style.display='none'"/>
+  </div>
+
+  <div class="preview-grid">
+    <div class="preview-small">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/dashboard-visualizations_2.png" alt="Dashboard Visualizations 2"/>
+    </div>
+    <div class="preview-small">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Loan%20Status%20Proportion%20by%20Type.png" alt="Loan Status by Type Heatmap"/>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- INSIGHTS -->
+<section class="section insights-section" id="insights">
+  <div class="section-label">Key Insights</div>
+  <h2 class="section-title">What the Data Reveals</h2>
+  <p class="section-sub">Six evidence-backed findings from the exploratory and statistical analysis phases.</p>
+
+  <div class="insights-grid">
+    <div class="insight-card" style="--ins-color: var(--teal);">
+      <div class="insight-num">01</div>
+      <div class="insight-icon">🌍</div>
+      <div class="insight-title">Regional Risk Varies Significantly</div>
+      <div class="insight-body">The North-East region shows the highest average default rate (~30%) in the EDA, while the interactive dashboard reveals the South region with the highest observed default activity. Both findings confirm that a blanket national lending policy is insufficient — localized underwriting thresholds are essential.</div>
+    </div>
+
+    <div class="insight-card" style="--ins-color: var(--blue);">
+      <div class="insight-num">02</div>
+      <div class="insight-icon">🎓</div>
+      <div class="insight-title">Education Loans Default Most Often</div>
+      <div class="insight-body">Education-purpose loans carry a 33% default probability — the highest of any loan purpose — followed by Purchase loans at 26%. Refinance loans, by contrast, show the lowest default rate at 23%.</div>
+    </div>
+
+    <div class="insight-card" style="--ins-color: var(--purple);">
+      <div class="insight-num">03</div>
+      <div class="insight-icon">🏦</div>
+      <div class="insight-title">FHA: Accessibility vs. Risk Trade-Off</div>
+      <div class="insight-body">FHA loans represent a small share of the portfolio (13.8%) yet carry a 34% default rate versus 23% for Conventional. This tension between lending accessibility and portfolio risk requires stricter FHA-specific assessment criteria rather than broad portfolio-wide adjustments.</div>
+    </div>
+
+    <div class="insight-card" style="--ins-color: var(--green);">
+      <div class="insight-num">04</div>
+      <div class="insight-icon">📊</div>
+      <div class="insight-title">Credit Score Weakly Predicts Default</div>
+      <div class="insight-body">Despite intuition, credit score alone is a weak discriminator — defaulted and paid-off loans overlap widely across the 500–900 range, suggesting that other variables (DTI, loan purpose, region) carry more predictive weight.</div>
+    </div>
+
+    <div class="insight-card" style="--ins-color: var(--amber);">
+      <div class="insight-num">05</div>
+      <div class="insight-icon">📅</div>
+      <div class="insight-title">Mid-Year Loan Volume Peak</div>
+      <div class="insight-body">Monthly loan volume peaks at ~$4.8B in June before declining steadily through year-end, reaching $3.3B in December. This seasonal pattern implies capacity planning and risk concentration windows for lenders.</div>
+    </div>
+
+    <div class="insight-card" style="--ins-color: var(--red);">
+      <div class="insight-num">06</div>
+      <div class="insight-icon">🔍</div>
+      <div class="insight-title">Property Value Has Outlier Problem</div>
+      <div class="insight-body">Property value shows over 2,200 statistical outliers — far more than any other feature — skewing regression lines significantly. Robust preprocessing or winsorization is essential before modeling collateral-based risk.</div>
+    </div>
+  </div>
+</section>
+
+<!-- VISUALIZATIONS -->
+<section class="section viz-section" id="visuals">
+  <div class="section-label">Visualizations</div>
+  <h2 class="section-title">Exploratory Analysis Gallery</h2>
+  <p class="section-sub">Charts generated during the EDA and statistical analysis phases using Matplotlib, Seaborn, and Plotly.</p>
+
+  <div class="viz-grid">
+    <div class="viz-card viz-wide">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Impact%20of%20Credit%20Score%20on%20Loan%20Amount%20and%20Default%20Risk.png" alt="Credit Score Impact"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Credit Score vs Loan Amount & Default Risk</span>
+        <span class="viz-type">Scatter · Seaborn</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Average%20Default%20Rate%20by%20Region.png" alt="Default Rate by Region"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Average Default Rate by Region</span>
+        <span class="viz-type">Bar · Matplotlib</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/monthly-loan-volume-2019.png" alt="Monthly Loan Volume"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Monthly Loan Volume (2019)</span>
+        <span class="viz-type">Line · Seaborn</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Default%20Rate%20by%20Loan%20Purpose.png" alt="Default Rate by Loan Purpose"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Default Rate by Loan Purpose</span>
+        <span class="viz-type">Bar · Seaborn</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Distribution%20of%20Loan%20Types.png" alt="Loan Type Distribution"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Distribution of Loan Types</span>
+        <span class="viz-type">Pie · Matplotlib</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Loan%20Defaults%20by%20Loan%20Purpose.png" alt="Loan Defaults by Purpose"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Loan Defaults by Loan Purpose</span>
+        <span class="viz-type">Bar · Seaborn</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Detected%20Outliers%20by%20Financial%20Feature.png" alt="Outlier Detection"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Detected Outliers by Financial Feature</span>
+        <span class="viz-type">Bar · Matplotlib</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Loan%20Purpose%20to%20Debt%20to%20Income%20Ratio.png" alt="DTI by Loan Purpose"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Loan Purpose vs Debt-to-Income Ratio</span>
+        <span class="viz-type">Box · Seaborn</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Relationship%20Between%20Property%20Value%20and%20Interest%20Rate%20Spread.png" alt="Property Value vs Rate Spread"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Property Value vs Interest Rate Spread</span>
+        <span class="viz-type">Scatter · Seaborn</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Relationship%20Between%20Borrower%20Income%20and%20Loan%20Amount.png" alt="Income vs Loan Amount"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Borrower Income vs Loan Amount</span>
+        <span class="viz-type">Scatter · Seaborn</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Pre-Approval%20Distribution%20by%20Loan%20Type.png" alt="Pre-Approval by Loan Type"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Pre-Approval Distribution by Loan Type</span>
+        <span class="viz-type">Stacked Bar · Seaborn</span>
+      </div>
+    </div>
+
+    <div class="viz-card">
+      <img src="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Property%20Value%20vs%20Loan%20Amount.png" alt="Property Value vs Loan Amount"/>
+      <div class="viz-card-footer">
+        <span class="viz-name">Property Value vs Loan Amount</span>
+        <span class="viz-type">Scatter · Seaborn</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- RECOMMENDATIONS -->
+<section class="section recs-section" id="recommendations">
+  <div class="section-label">Strategic Recommendations</div>
+  <h2 class="section-title">Actionable Insights<br/>for Lenders</h2>
+  <p class="section-sub">Evidence-driven recommendations derived from the analysis to reduce portfolio default risk.</p>
+
+  <div class="recs-grid">
+    <div class="rec-card">
+      <div class="rec-num">01</div>
+      <div class="rec-content">
+        <div class="rec-title">Enhance Underwriting with Multi-Variable Scoring</div>
+        <div class="rec-body">Shift from credit-score-dominant decisions to comprehensive multi-variable risk scoring models that incorporate DTI ratio, property value, loan purpose, region, and interest rate spreads simultaneously.</div>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-num">02</div>
+      <div class="rec-content">
+        <div class="rec-title">Apply Targeted Assessment by Loan Segment</div>
+        <div class="rec-body">Apply stricter review criteria and adjusted rate thresholds for FHA loans and higher-risk loan purposes (Education, Home Improvement). Blanket national policies underperform compared to segment-specific underwriting.</div>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-num">03</div>
+      <div class="rec-content">
+        <div class="rec-title">Implement Localized Regional Risk Monitoring</div>
+        <div class="rec-body">Implement localized risk monitoring with adjusted underwriting policies for high-default regions. Regional underwriters should factor local economic conditions into risk scoring rather than applying uniform national thresholds.</div>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-num">04</div>
+      <div class="rec-content">
+        <div class="rec-title">Proactively Track Leading Risk Indicators</div>
+        <div class="rec-body">Track interest rate spreads and debt-to-income ratios systematically as leading indicators of portfolio stress. These metrics signal emerging risk earlier than credit scores, enabling preemptive intervention.</div>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-num">05</div>
+      <div class="rec-content">
+        <div class="rec-title">Deploy Regularized Predictive Models</div>
+        <div class="rec-body">Integrate Ridge-regularized regression models (alpha=0.1, polynomial features) into the daily borrower evaluation and pricing workflow. Train/test validation (85/15 split) confirmed robust R² generalization performance.</div>
+      </div>
+    </div>
+
+    <div class="rec-card">
+      <div class="rec-num">06</div>
+      <div class="rec-content">
+        <div class="rec-title">Expand Dashboard to Forward-Looking Forecasting</div>
+        <div class="rec-body">Expand dashboard capabilities beyond historical exploration to include real-time portfolio monitoring and forward-looking default forecasting, transforming the tool from a reporting instrument into a proactive risk-management engine.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<section class="section tools-section" id="tools">
+  <div class="section-label">Technologies</div>
+  <h2 class="section-title">Built With</h2>
+  <p class="section-sub">A modern Python analytics stack from data wrangling to interactive deployment.</p>
+
+  <div class="tools-grid">
+    <div class="tool-pill" style="--pill-color: var(--blue);">
+      <div class="tool-icon">🐍</div>
+      <div class="tool-name">Python 3</div>
+    </div>
+    <div class="tool-pill" style="--pill-color: var(--teal);">
+      <div class="tool-icon">🐼</div>
+      <div class="tool-name">Pandas</div>
+    </div>
+    <div class="tool-pill" style="--pill-color: var(--green);">
+      <div class="tool-icon">🔢</div>
+      <div class="tool-name">NumPy</div>
+    </div>
+    <div class="tool-pill" style="--pill-color: var(--amber);">
+      <div class="tool-icon">📊</div>
+      <div class="tool-name">Matplotlib</div>
+    </div>
+    <div class="tool-pill" style="--pill-color: var(--teal);">
+      <div class="tool-icon">🎨</div>
+      <div class="tool-name">Seaborn</div>
+    </div>
+    <div class="tool-pill" style="--pill-color: var(--blue);">
+      <div class="tool-icon">📈</div>
+      <div class="tool-name">Plotly</div>
+    </div>
+    <div class="tool-pill" style="--pill-color: var(--purple);">
+      <div class="tool-icon">⚡</div>
+      <div class="tool-name">Dash</div>
+    </div>
+    <div class="tool-pill" style="--pill-color: var(--green);">
+      <div class="tool-icon">🤖</div>
+      <div class="tool-name">scikit-learn</div>
+    </div>
+    <div class="tool-pill" style="--pill-color: var(--amber);">
+      <div class="tool-icon">📓</div>
+      <div class="tool-name">Jupyter</div>
+    </div>
+    <div class="tool-pill" style="--pill-color: var(--teal);">
+      <div class="tool-icon">💻</div>
+      <div class="tool-name">VS Code</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- LINKS -->
+<section class="section links-section" id="links">
+  <div class="section-label">Project Links</div>
+  <h2 class="section-title">Explore the Project</h2>
+  <p class="section-sub">Access the full codebase, live dashboard, and presentation materials.</p>
+
+  <div class="links-row">
+    <a href="https://github.com/DKTODesigns/loan-default-risk-analysis-dashboard" target="_blank" class="link-card">
+      <div class="link-icon">🐙</div>
+      <div class="link-text">
+        <strong>GitHub Repository</strong>
+        <span>DKTODesigns / loan-default-risk-analysis-dashboard</span>
+      </div>
+    </a>
+    <a href="https://github.com/DKTODesigns/loan-default-risk-analysis-dashboard" target="_blank" class="link-card">
+      <div class="link-icon">📊</div>
+      <div class="link-text">
+        <strong>Live Dashboard</strong>
+        <span>Interactive Dash &amp; Plotly app</span>
+      </div>
+    </a>
+    <a href="https://raw.githubusercontent.com/DKTODesigns/loan-default-risk-analysis-dashboard/main/Loan%20Default%20Risk%20Analysis%20Presentation.pdf" target="_blank" class="link-card">
+      <div class="link-icon">📑</div>
+      <div class="link-text">
+        <strong>Presentation Deck</strong>
+        <span>18-slide executive brief (.pdf)</span>
+      </div>
+    </a>
+    <a href="https://github.com/DKTODesigns/loan-default-risk-analysis-dashboard/blob/main/loan_default_risk_analysis.ipynb" target="_blank" class="link-card">
+      <div class="link-icon">📓</div>
+      <div class="link-text">
+        <strong>Jupyter Notebook</strong>
+        <span>Full EDA &amp; modeling code</span>
+      </div>
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>Loan Default Risk Analysis Dashboard · Built with <span>Python</span>, <span>Dash</span> &amp; <span>Plotly</span> · Data Analytics Project</p>
+</footer>
+
+<script>
+  // Intersection Observer for reveal animations
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.08 });
+
+  const animItems = document.querySelectorAll(
+    '.stat-card, .kpi-card, .insight-card, .viz-card, .rec-card, .tool-pill, .link-card, .preview-small'
+  );
+
+  animItems.forEach((el, i) => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = `opacity .5s ${i * 0.05}s ease, transform .5s ${i * 0.05}s ease, border-color .25s, box-shadow .25s`;
+    observer.observe(el);
+  });
+</script>
+
+</body>
+</html>
