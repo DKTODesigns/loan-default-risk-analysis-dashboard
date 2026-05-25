@@ -13,13 +13,17 @@ This project was completed as part of a group assignment through the NPower Cana
 I helped guide the overall project direction and supported the team in defining meaningful business questions and identifying financial insights to explore within the dataset.
 
 My direct contributions included:
+
 - Oversaw project coordination and alignment across deliverables
 - Helped shape the analytical approach and identify target insights during early exploration
 - Refined and enhanced the Dash dashboard in Visual Studio Code
 - Improved dashboard usability by adding additional filters and replacing the year selector with monthly analysis
 - Created the final PowerPoint presentation and presentation narrative
+- Converted the presentation to PDF and published it to the repository for public access
 - Added markdown structure and documentation in the Colab notebook to improve readability and storytelling
 - Supported GitHub documentation and final project packaging
+- Designed and built a polished project landing page (index.html) using HTML, CSS, and JavaScript — featuring an interactive hero section, KPI cards, visualization gallery, insights, and strategic recommendations
+- Deployed the landing page as a live public website via GitHub Pages
 
 ## Project Overview
 
